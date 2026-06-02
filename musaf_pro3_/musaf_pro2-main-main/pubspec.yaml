@@ -1,0 +1,68 @@
+name: musaf_pro
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  image_picker: ^1.0.4          # إضافة جديدة
+  flutter_markdown: ^0.7.5+1
+  firebase_core: ^3.15.2
+  firebase_auth: ^5.7.0
+  cloud_firestore: ^5.6.12
+  firebase_messaging: ^15.2.10 # 🚀 تم إضافة علامة ^
+  cupertino_icons: ^1.0.8
+  url_launcher: ^6.3.2
+  battery_plus: ^7.0.0
+  emailjs: ^4.0.0
+  mailer: ^6.6.0
+  flutter_local_notifications: ^17.1.2
+  timezone: ^0.9.4
+  flutter_timezone: ^5.0.2
+  smooth_page_indicator: ^2.0.1
+  geolocator: ^14.0.2
+  geocoding: ^3.0.0
+  geoflutterfire_plus: ^0.0.21
+  speech_to_text: ^7.3.0
+  permission_handler: ^12.0.1
+  flutter_localizations:
+    sdk: flutter
+  lottie: ^3.1.2
+  sensors_plus: ^5.0.1
+  http: ^1.2.1 # ✅ تم دمج السطرين في سطر واحد ونسخة حديثة
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.0
+  youtube_player_flutter: ^9.0.1
+  google_fonts: ^6.2.1
+  provider: ^6.1.5+1
+  firebase_storage: ^12.4.10
+  googleapis_auth: ^1.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
+
+
+  # 🚀 تم إضافة وتعيين مسار مجلد الصور والأنيميشن هنا بدقة
+  assets:
+    - assets/images/
+    - assets/animations/
+    #- assets/service_account.json
+
+  fonts:
+    - family: Almarai
+      fonts:
+        - asset: assets/fonts/Almarai-Bold.ttf
+          weight: 700 # لأن الخط Bold (عريض)
+
+
+      
