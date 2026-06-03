@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1044385788435",
+    "project_id": "musaf-62fb2",
+    "storage_bucket": "musaf-62fb2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1044385788435:android:8f04585ce204ca5e77c5e6",
+        "android_client_info": {
+          "package_name": "com.example.hospt"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAm2Mpe19bPpITrdjomj5IoIsVzseWZvE0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1044385788435:android:014bbe589800e15677c5e6",
+        "android_client_info": {
+          "package_name": "com.example.musaf_pro"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAm2Mpe19bPpITrdjomj5IoIsVzseWZvE0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
