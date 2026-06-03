@@ -52,4 +52,4 @@ google-services.json
 GoogleService-Info.plist
 lib/firebase_options.dart
 assets/service_account.jsongit rm -r --cached .
-assets/service_account.json.json
+assets/service_account.json
