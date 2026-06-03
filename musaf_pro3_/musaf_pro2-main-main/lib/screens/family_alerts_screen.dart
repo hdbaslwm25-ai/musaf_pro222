@@ -122,14 +122,11 @@ class FamilyAlertsScreen extends StatelessWidget {
             color: isRead ? Colors.black54 : Colors.black87,
           ),
         ),
-        // تم التعديل حسب ملاحظتك لعرض التاريخ والوقت
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
             Text(
-              // تم التغيير إلى time_string بناءً على الكود في ZoneRepository الذي أرسلته سابقاً
-              // إذا كنت تستخدم date_time_string في قاعدة البيانات، استبدلها هنا
               alert['time_string'] ?? '', 
               style: const TextStyle(
                 fontSize: 12,
@@ -144,7 +141,6 @@ class FamilyAlertsScreen extends StatelessWidget {
     );
   }
 
-  // تم التعديل باستخدام Switch Case
   Color _getAlertColor(String? type, Color primaryColor) {
     switch (type) {
       case 'exit':
@@ -153,10 +149,11 @@ class FamilyAlertsScreen extends StatelessWidget {
         return Colors.green;
       case 'battery':
         return Colors.orange;
-      case 'signal_loss': // تم إضافة فقدان الإشارة
+      case 'signal_loss': 
         return const Color.fromARGB(255, 130, 126, 136);
       case 'medication_delay':
-        return primaryColor;
+      case 'medication_reminder': // 👈 تمت الإضافة هنا
+        return Colors.teal; // لون مميز للأدوية
       case 'accident_fall':
         return Colors.red.shade900;
       default:
@@ -164,19 +161,19 @@ class FamilyAlertsScreen extends StatelessWidget {
     }
   }
 
-  // تم التعديل باستخدام Switch Case
   IconData _getAlertIcon(String? type, Color primaryColor) {
     switch (type) {
       case 'exit':
         return Icons.warning_rounded;
       case 'entry':
-        return Icons.home_rounded; // تعديل ليتوافق مع الدخول
+        return Icons.home_rounded; 
       case 'battery':
         return Icons.battery_alert_rounded;
       case 'signal_loss':
         return Icons.portable_wifi_off_rounded;
       case 'medication_delay':
-        return Icons.notification_important_rounded;
+      case 'medication_reminder': // 👈 تمت الإضافة هنا
+        return Icons.medication_rounded; // أيقونة الدواء
       case 'accident_fall':
         return Icons.personal_injury_rounded;
       default:

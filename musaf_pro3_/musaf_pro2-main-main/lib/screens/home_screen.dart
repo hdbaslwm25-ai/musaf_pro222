@@ -45,6 +45,29 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _initializeCaregiverData();
+    // 👈 🚀 إضافة استدعاء دالة حفظ التوكن الخاصة بالمرافق هنا
+    _saveCaregiverTokenToUserDoc();
+  }
+
+  // 👈 🚀 الدالة الجديدة المضافة لحفظ توكن هاتف العائلة في الفايربيس (جدول users)
+  Future<void> _saveCaregiverTokenToUserDoc() async {
+    if (currentUserId == null) return;
+    try {
+      FirebaseMessaging messaging = FirebaseMessaging.instance;
+      // طلب الصلاحيات (مهمة لأجهزة الآيفون بشكل خاص)
+      await messaging.requestPermission(alert: true, badge: true, sound: true);
+      // جلب توكن الجهاز
+      String? token = await messaging.getToken();
+      if (token != null) {
+        // حفظ التوكن في ملف العائلة (caregiver) تحت اسم fcmToken
+        await FirebaseFirestore.instance.collection('users').doc(currentUserId).set({
+          'fcmToken': token, 
+        }, SetOptions(merge: true)); // استخدام merge لعدم مسح البيانات الأخرى
+        debugPrint("✅ تم حفظ/تحديث توكن العائلة (fcmToken) بنجاح في ملف المستخدم!");
+      }
+    } catch (e) {
+      debugPrint("❌ حدث خطأ أثناء حفظ توكن العائلة الخاص بالمرافق: $e");
+    }
   }
 
   Future<void> _initializeCaregiverData() async {
