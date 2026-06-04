@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:musaf_pro/screens/notifications_screen.dart';
+import 'package:musaf_pro/services/patient_background_service.dart';
 import 'package:musaf_pro/widgets/custom_button.dart';
 
 import 'package:musaf_pro/screens/patient_settings_screen.dart';
@@ -32,11 +34,28 @@ class _PatientHomeScreenState extends State<PatientHomeScreen>
   String _userName = '...';
   late Stream<int> _medsStream;
 
-  @override
+ @override
   void initState() {
     super.initState();
     _fetchUserName();
     _medsStream = _getIncomingMedsCount();
+
+    // تشغيل خدمة التتبع في الخلفية
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // 1. بدء الخدمة
+      await PatientBackgroundService.start();
+
+      // 2. تمرير الـ ID للخدمة بعد التأكد من وجود مستخدم
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        FlutterBackgroundService().invoke(
+          "startTracking",
+          {
+            "patientId": user.uid,
+          },
+        );
+      }
+    });
 
     _sosController = AnimationController(
       vsync: this,

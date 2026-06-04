@@ -19,19 +19,23 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   final MapController _mapController = MapController();
-  final Color primaryPurple = const Color(0xFF6C63FF);
+  
+  // 🚀 الألوان المعتمدة للتطبيق
+  final Color musafRed = const Color(0xFFB7131A); 
+  final Color safeGreen = const Color(0xFF2E7D32);
 
   @override
   void initState() {
     super.initState();
     _initMapData();
   }
+//      pro.startListeningToPatient(widget.patientId);
 
   void _initMapData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final pro = context.read<LocationProvider>();
+      final pro = context.read<CaregiverPatientProvider>();
       pro.loadSafeZones(widget.patientId);
-      pro.startPatientTracking(widget.patientId);
+      pro.startListeningToPatient(widget.patientId);
     });
   }
 
@@ -52,20 +56,29 @@ class _MapScreenState extends State<MapScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: _buildAppBar(),
-      body: Consumer<LocationProvider>(
+      body: Consumer<CaregiverPatientProvider>(
         builder: (context, locProvider, child) {
-          final patientPos = locProvider.currentPosition;
-          LatLng? patientLatLng = patientPos != null 
-              ? LatLng(patientPos.latitude, patientPos.longitude) 
+         // 🚀 قراءة الإحداثيات مباشرة من بيانات السيرفر بدون كائن Position
+          final lat = locProvider.patientData?['last_latitude'];
+          final lng = locProvider.patientData?['last_longitude'];
+          
+          LatLng? patientLatLng = (lat != null && lng != null) 
+              ? LatLng((lat as num).toDouble(), (lng as num).toDouble()) 
               : null;
 
-          bool isDanger = locProvider.status.contains("خارج") || locProvider.status.contains("⚠️");
+          // 🚀 جلب الحالة بالطريقة الصحيحة
+          String statusText = locProvider.patientData?['status']?.toString() ?? "";
+          bool connectionLost = locProvider.connectionState == AppConnectionState.error;
+          bool hasSafeZones = locProvider.safeZones.isNotEmpty;
+          
+          // 🚀 حالة الخطر: خارج المنطقة، فقدان اتصال، أو لا توجد مناطق مضافة أصلاً
+          bool isDanger = statusText.contains("خارج") || statusText.contains("⚠️") || connectionLost || !hasSafeZones;
 
           return Stack(
             children: [
               _buildMap(locProvider, patientLatLng, isDanger),
               if (patientLatLng != null) _buildFloatingControls(isDanger, patientLatLng),
-              _buildBottomStatusPanel(locProvider.status, isDanger),
+              _buildBottomStatusPanel(statusText, isDanger),
             ],
           );
         },
@@ -73,7 +86,7 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  Widget _buildMap(LocationProvider locProvider, LatLng? patientLatLng, bool isDanger) {
+  Widget _buildMap(CaregiverPatientProvider locProvider, LatLng? patientLatLng, bool isDanger) {
     return FlutterMap(
       mapController: _mapController,
       options: MapOptions(
@@ -92,16 +105,17 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  Widget _buildSafeZonesLayer(LocationProvider locProvider, bool isDanger) {
+  Widget _buildSafeZonesLayer(CaregiverPatientProvider locProvider, bool isDanger) {
     return CircleLayer(
       circles: locProvider.safeZones.map((zone) => CircleMarker(
         point: LatLng(zone.latitude, zone.longitude),
+        // 🚀 تلوين الدائرة: أحمر للخطر، أخضر للأمان، رمادي للمناطق المعطلة
         color: zone.isActive 
-            ? (isDanger ? Colors.red.withOpacity(0.1) : primaryPurple.withOpacity(0.05))
-            : Colors.grey.withOpacity(0.1),
+            ? (isDanger ? musafRed.withValues(alpha: 0.1) : safeGreen.withValues(alpha: 0.15))
+            : Colors.grey.withValues(alpha: 0.1),
         borderStrokeWidth: 2,
         borderColor: zone.isActive 
-            ? (isDanger ? Colors.redAccent : primaryPurple.withOpacity(0.3))
+            ? (isDanger ? musafRed : safeGreen.withValues(alpha: 0.8))
             : Colors.grey,
         useRadiusInMeter: true,
         radius: zone.radius,
@@ -139,23 +153,40 @@ class _MapScreenState extends State<MapScreen> {
 
   Widget _buildFloatingControls(bool isDanger, LatLng patientLatLng) {
     return Positioned(
-      bottom: 150, right: 20,
+      bottom: 130, right: 20, 
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (isDanger)
+          if (isDanger) ...[
             FloatingActionButton.extended(
               heroTag: "nav",
               onPressed: () => _navigateToPatient(patientLatLng.latitude, patientLatLng.longitude),
-              label: const Text("ملاحة سريعة", style: TextStyle(fontFamily: 'Cairo')),
-              icon: const Icon(Icons.directions_car),
-              backgroundColor: Colors.redAccent,
+              label: const Text("ملاحة سريعة", style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, color: Colors.white)),
+              icon: const Icon(Icons.directions_car, color: Colors.white),
+              backgroundColor: musafRed, 
             ),
+            const SizedBox(height: 12),
+          ],
+          
+          FloatingActionButton.extended(
+            heroTag: "add_zone",
+            onPressed: () {
+              final centerPoint = _mapController.camera.center; 
+              _showAddZoneDialog(centerPoint);
+            },
+            label: const Text("إضافة منطقة", style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, color: Colors.white)),
+            icon: const Icon(Icons.add_location_alt_rounded, color: Colors.white),
+            // 🚀 زر الإضافة يكون أحمراً إذا لم تكن هناك مناطق/خطر، وأخضر إذا كان الوضع آمناً
+            backgroundColor: isDanger ? musafRed : safeGreen, 
+          ),
           const SizedBox(height: 12),
+          
           FloatingActionButton(
             heroTag: "center",
             backgroundColor: Colors.white,
             onPressed: () => _mapController.move(patientLatLng, 17.0),
-            child: Icon(Icons.center_focus_strong, color: primaryPurple),
+            // 🚀 لون الأيقونة يتغير ديناميكياً مع حالة المريض
+            child: Icon(Icons.my_location_rounded, color: isDanger ? musafRed : safeGreen),
           ),
         ],
       ),
@@ -164,10 +195,11 @@ class _MapScreenState extends State<MapScreen> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      title: const Text('التتبع اللحظي', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Cairo')),
+      title: const Text('التتبع اللحظي', style: TextStyle(fontWeight: FontWeight.bold, fontFamily: 'Cairo', color: Colors.black87)),
       centerTitle: true,
-      backgroundColor: Colors.white.withOpacity(0.9),
+      backgroundColor: Colors.white.withValues(alpha: 0.9),
       elevation: 0,
+      iconTheme: const IconThemeData(color: Colors.black87),
     );
   }
 }

@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
-import '../providers/location_provider.dart';
+import 'package:musaf_pro/providers/location_provider.dart';
+
 
 class AddZoneDialog extends StatefulWidget {
   final LatLng point;
@@ -76,7 +77,7 @@ class _AddZoneDialogState extends State<AddZoneDialog> {
                 ? _customNameController.text 
                 : _selectedZoneType;
             
-            context.read<LocationProvider>().addNewSafeZone(
+            context.read<CaregiverPatientProvider>().addNewSafeZone(
               patientId: widget.patientId,
               name: name,
               latitude: widget.point.latitude,

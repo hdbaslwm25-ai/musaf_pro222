@@ -6,7 +6,12 @@ class SafeZone {
   final double latitude;
   final double longitude;
   final double radius;
-  final bool isActive; // تعديل الحقل ليصبح final لضمان عدم التغيير بالخطأ
+  final bool isActive; 
+  
+  final String? createdBy;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  // تعديل الحقل ليصبح final لضمان عدم التغيير بالخطأ
 
   const SafeZone({
     required this.id,
@@ -14,7 +19,11 @@ class SafeZone {
     required this.latitude,
     required this.longitude,
     required this.radius,
-    this.isActive = true,
+    this.isActive = true, 
+     this.createdBy,
+    
+     this.createdAt,
+      this.updatedAt,
   });
 
   /// [copyWith] هي الطريقة القياسية في المعمارية النظيفة لتعديل حقل معين

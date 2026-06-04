@@ -7,10 +7,11 @@ class ZoneCard extends StatelessWidget {
   final SafeZone zone; 
   final int index;
   final String patientId;
-  final LocationProvider locProvider;
+  final CaregiverPatientProvider locProvider;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-  final Color primaryPurple;
+
+  // 🚀 تم إزالة اللون البنفسجي لتوحيد الهوية البصرية
 
   const ZoneCard({
     super.key,
@@ -20,20 +21,23 @@ class ZoneCard extends StatelessWidget {
     required this.locProvider,
     required this.onEdit,
     required this.onDelete,
-    this.primaryPurple =AppColors.primary
   });
 
   @override
   Widget build(BuildContext context) {
-    bool isPatientInsideNow = zone.isActive && locProvider.currentZoneId == zone.id;
+    final Color safeGreen = const Color(0xFF2E7D32); // اللون الأخضر المعتمد
+    
+    // 🚀 التعديل الذكي: التحقق مما إذا كان المريض داخل هذه المنطقة بالتحديد 
+    // عبر قراءة نص الحالة القادم من السيرفر بدلاً من currentZoneId المحذوف
+    String statusText = locProvider.patientData?['status']?.toString() ?? "";
+    bool isPatientInsideNow = zone.isActive && statusText.contains(zone.name) && statusText.contains("آمن");
 
     return Dismissible(
-      key: Key(zone.id + index.toString()),
-      // 👈 تعديل الاتجاه: السحب من اليمين إلى اليسار (وهو الاتجاه الطبيعي في الواجهات العربية)
-      direction: DismissDirection.startToEnd, 
+      key: Key(zone.id), // استخدام الـ ID يكفي وهو أكثر أماناً من الـ index
+      direction: DismissDirection.startToEnd, // السحب من اليمين لليسار
       background: _buildDeleteBackground(),
       confirmDismiss: (direction) async {
-        onDelete(); 
+        onDelete(); // استدعاء نافذة التأكيد التي برمجناها في الشاشة الأب
         return false; 
       },
       child: AnimatedContainer(
@@ -44,14 +48,14 @@ class ZoneCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isPatientInsideNow 
-                ? Colors.green.withOpacity(0.7) 
-                : (zone.isActive ? primaryPurple.withOpacity(0.1) : Colors.grey.shade200),
+                ? safeGreen.withValues(alpha: 0.7) 
+                : (zone.isActive ? safeGreen.withValues(alpha: 0.2) : Colors.grey.shade200),
             width: isPatientInsideNow ? 2.5 : 1, 
           ),
           boxShadow: [
             if (isPatientInsideNow)
               BoxShadow(
-                color: Colors.green.withOpacity(0.15),
+                color: safeGreen.withValues(alpha: 0.15),
                 blurRadius: 15,
                 spreadRadius: 3,
               )
@@ -66,12 +70,12 @@ class ZoneCard extends StatelessWidget {
               opacity: zone.isActive ? 1.0 : 0.6,
               child: Row(
                 children: [
-                  _buildIconIndicator(isPatientInsideNow, zone.isActive),
+                  _buildIconIndicator(isPatientInsideNow, zone.isActive, safeGreen),
                   const SizedBox(width: 15),
                   _buildZoneDetails(zone.isActive),
                   Switch(
                     value: zone.isActive,
-                    activeColor: primaryPurple,
+                    activeColor: safeGreen, // تم توحيد اللون للأخضر
                     onChanged: (val) => locProvider.toggleZoneStatus(index, patientId, val),
                   ),
                 ],
@@ -83,25 +87,23 @@ class ZoneCard extends StatelessWidget {
     );
   }
 
-  // --- دوال بناء الواجهة الفرعية المحدثة (Sub-Widgets) ---
-
-  // 👈 تعديل المحاذاة والترتيب ليظهر النص والأيقونة في الجهة اليسرى المستهدفة بشكل منظم
+  // 👈 تم ضبط المحاذاة لتناسب السحب في الواجهة العربية (يظهر من اليمين)
   Widget _buildDeleteBackground() {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      alignment: Alignment.centerLeft, // تثبيت المحاذاة يساراً
+      alignment: Alignment.centerRight, // 🚀 التعديل هنا
       decoration: BoxDecoration(
-        color: Colors.redAccent,
+        color: AppColors.error, // استخدام الأحمر الخاص بمسعف
         borderRadius: BorderRadius.circular(20),
       ),
       child: const Row(
-        mainAxisAlignment: MainAxisAlignment.start, // تبدأ من اليسار توازياً مع السحب لليمين
+        mainAxisAlignment: MainAxisAlignment.start, 
         children: [
           Icon(Icons.delete_sweep_rounded, color: Colors.white, size: 26),
           SizedBox(width: 10),
           Text(
-            "حذف النطاق",
+            "حذف المنطقة",
             style: TextStyle(fontFamily: 'Cairo', color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
           ),
         ],
@@ -109,19 +111,19 @@ class ZoneCard extends StatelessWidget {
     );
   }
 
-  Widget _buildIconIndicator(bool isInside, bool active) {
+  Widget _buildIconIndicator(bool isInside, bool active, Color activeColor) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isInside 
-            ? Colors.green.withOpacity(0.1) 
-            : (active ? primaryPurple.withOpacity(0.1) : Colors.grey.withOpacity(0.1)),
+            ? activeColor.withValues(alpha: 0.15) 
+            : (active ? activeColor.withValues(alpha: 0.05) : Colors.grey.withValues(alpha: 0.1)),
         borderRadius: BorderRadius.circular(15),
-        border: isInside ? Border.all(color: Colors.green, width: 1.5) : null,
+        border: isInside ? Border.all(color: activeColor, width: 1.5) : null,
       ),
       child: Icon(
         _getIconForType(zone.name), 
-        color: isInside ? Colors.green : (active ? primaryPurple : Colors.grey), 
+        color: isInside ? activeColor : (active ? activeColor.withValues(alpha: 0.7) : Colors.grey), 
         size: 28
       ),
     );
@@ -161,7 +163,7 @@ class ZoneCard extends StatelessWidget {
     if (name.contains('مدرسة') || name.contains('جامعة')) return Icons.school_rounded;
     if (name.contains('حديقة') || name.contains('نادي')) return Icons.park_rounded;
     if (name.contains('مسجد')) return Icons.mosque_rounded;
-    if (name.contains('مستشفى') || name.contains('عيادة')) return Icons.local_hospital_rounded;
-    return Icons.location_on_rounded;
+    if (name.contains('مستشفى') || name.contains('عيادة') || name.contains('مركز')) return Icons.local_hospital_rounded;
+    return Icons.location_on_rounded; 
   }
 }

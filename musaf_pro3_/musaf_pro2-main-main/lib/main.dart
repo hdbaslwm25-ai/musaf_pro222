@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:musaf_pro/providers/patient_location_provider.dart';
 import 'package:musaf_pro/screens/main_dashboardF_screen.dart';
+import 'package:musaf_pro/services/patient_background_service.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -37,19 +39,31 @@ import 'screens/patient_verification_screen.dart';
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 }
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
+  // 1. تهيئة Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // 2. تهيئة خدمة التتبع الخلفية (الخطوة الأهم)
+  await PatientBackgroundService.initialize();
+
+  // 3. تهيئة FCM والإشعارات
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   await NotificationService.init();
 
   runApp(
     MultiProvider(
       providers: [
+        // 🚀 إضافة الـ Provider هنا ليكون متاحاً لكل شاشات التطبيق
         ChangeNotifierProvider(
-          create: (_) => LocationProvider(FirebaseZoneRepository()),
+          create: (context) => CaregiverPatientProvider(FirebaseZoneRepository()),
+        ),
+        // المزود الخاص بمنطق المريض الذي استحدثناه
+        ChangeNotifierProvider(
+          create: (_) => PatientLocationProvider(),
         ),
       ],
       child: const MyApp(),

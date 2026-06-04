@@ -84,25 +84,47 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
       const CaregiverSettingsScreen(), 
     ];
     // 👈 التعديل السحري هنا: قراءة حالة المريض وتحديد اللون ديناميكياً
-    return Consumer<LocationProvider>(
+   // 👈 داخل دالة build في أسفل الملف
+   // 👈 داخل دالة build في أسفل الملف
+    return Consumer<CaregiverPatientProvider>(
       builder: (context, locProvider, child) {
-        // التحقق مما إذا كانت الحالة تحتوي على كلمات تدل على الخطر
-        bool isDanger = locProvider.status.contains("خارج") || 
-                        locProvider.status.contains("فقدان") || 
-                        locProvider.status.contains("⚠️");
+        // 1. الألوان المعتمدة للتطبيق
+        final Color musafRed = const Color(0xFFB7131A);
+        final Color safeGreen = const Color(0xFF2E7D32);
 
-        // تغيير اللون بناءً على الحالة
-        Color dynamicActiveColor = isDanger ? Colors.red : const Color(0xFF2E7D32);
+        // 2. فحص الحالات
+        bool connectionLost = locProvider.connectionState == AppConnectionState.error;
+        String statusText = locProvider.patientData?['status']?.toString() ?? "";
+        bool isDanger = statusText.contains("خارج") || connectionLost || statusText.contains("⚠️");
+        
+        // هل توجد مناطق أمان مضافة؟
+        bool hasSafeZones = locProvider.safeZones.isNotEmpty; 
 
-        return Scaffold(
-          body: IndexedStack(
-            index: _currentIndex,
-            children: pages,
-          ),
-          bottomNavigationBar: CustomBottomNav(
-            currentIndex: _currentIndex,
-            onTap: (index) => setState(() => _currentIndex = index),
-            activeColor: dynamicActiveColor, // تمرير اللون الديناميكي للشريط
+        // 3. المنطق: إذا لم تكن هناك مناطق أو كان هناك خطر -> أحمر مُسعف، وإلا -> أخضر
+        Color dynamicActiveColor = (!hasSafeZones || isDanger) ? musafRed : safeGreen;
+
+        // 🚀 الحل: إضافة PopScope للتحكم بزر الرجوع الخاص بالجوال
+        return PopScope(
+          // يسمح بالخروج من التطبيق فــــقــــط إذا كنا في التبويب الأول (الرئيسية index = 0)
+          canPop: _currentIndex == 0, 
+          onPopInvoked: (didPop) {
+            if (didPop) return; // إذا خرج من التطبيق فعلاً (لأنه في الرئيسية)، نوقف التنفيذ
+            
+            // أما إذا كان في تبويب آخر (مثل الإعدادات) وضغط رجوع، نرجعه للرئيسية بدل الخروج
+            setState(() {
+              _currentIndex = 0; 
+            });
+          },
+          child: Scaffold(
+            body: IndexedStack(
+              index: _currentIndex,
+              children: pages,
+            ),
+            bottomNavigationBar: CustomBottomNav(
+              currentIndex: _currentIndex,
+              onTap: (index) => setState(() => _currentIndex = index),
+              activeColor: dynamicActiveColor, // 🚀 الشريط السفلي يتغير لونه ديناميكياً
+            ),
           ),
         );
       },
