@@ -4,6 +4,8 @@ import 'dart:async';
 
 // 🚀 تم استدعاء ملف الزر المخصص هنا
 import 'package:musaf_pro/widgets/custom_button.dart';
+// 🚀 تم استدعاء شاشة الأذونات هنا (تأكدي من صحة المسار حسب مشروعك)
+import 'package:musaf_pro/screens/permissions_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -122,13 +124,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     textDirection: TextDirection.rtl,
                     child: Column(
                       children: [
-                        // 🚀 تم استبدال الكود الطويل باستدعاء الكومبوننت الجاهز (CustomButton)
                         CustomButton(
                           text: isLastPage ? 'ابدأ الآن' : 'التالي',
                           isPrimary: true, // زر أساسي بخلفية حمراء
                           onPressed: () {
                             if (isLastPage) {
-                              Navigator.pushReplacementNamed(context, '/login');
+                              // 🚀 التعديل لحل التعليق: الانتقال المباشر لشاشة الأذونات
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const PermissionsScreen(),
+                                ),
+                              );
                             } else {
                               _controller.nextPage(
                                 duration: const Duration(milliseconds: 500),
@@ -139,14 +147,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
 
                         if (!isLastPage)
-                          // 🚀 استدعاء زر التخطي الجاهز
                           CustomButton(
                             text: 'تخطي',
                             isPrimary: false, // زر شفاف بدون خلفية
-                            onPressed: () => Navigator.pushReplacementNamed(
-                              context,
-                              '/login',
-                            ),
+                            onPressed: () {
+                              // 🚀 التعديل لحل التعليق: الانتقال المباشر لشاشة الأذونات عند التخطي
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const PermissionsScreen(),
+                                ),
+                              );
+                            },
                           ),
                       ],
                     ),

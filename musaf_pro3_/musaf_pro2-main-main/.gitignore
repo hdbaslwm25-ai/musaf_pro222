@@ -48,8 +48,12 @@ app.*.map.json
 /android/app/release
 
 # 🚨 Firebase Security Keys & Secrets 🚨
-google-services.json
-GoogleService-Info.plist
+# 🚨 Firebase Security Keys & Secrets 🚨
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
 lib/firebase_options.dart
-assets/service_account.jsongit rm -r --cached .
 assets/service_account.json
+# 🐍 Python Virtual Environment 🚨
+**/venv/
+**/__pycache__/
+.env
